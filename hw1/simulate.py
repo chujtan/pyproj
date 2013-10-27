@@ -14,11 +14,21 @@ def simulate(startdate, enddate, symbols, weights):
     sharpe = 0
     cum_ret = 0
 
+    df_close = get_data(startdate, enddate, symbols, [da.DataItem.CLOSE])[da.DataItem.CLOSE]
+    df_ret = df_close / df_close.shift(1) - 1
+    df_avg = df_ret.sum() / df_ret.count()
+    df_var = (df_ret - df_avg) ** 2 / df_ret.count()
+    df_vol = df_var ** 0.5
+
+
+
+
+def get_data(dt_sd, dt_ed, l_symbols, l_keys):
     q = da.DataAccess(da.DataSource.YAHOO)
-    ldt_timestamps = du.getNYSEdays(startdate, enddate, dt.timedelta(hours=16))
-    ls_keys = [da.DataItem.HIGH, da.DataItem.LOW, da.DataItem.CLOSE, da.DataItem.ADJUSTED_CLOSE]
-    ldf_data = q.get_data(ldt_timestamps, symbols, ls_keys)
-    return dict(zip(ls_keys, ldf_data))
+    l_ts = du.getNYSEdays(dt_sd, dt_ed, dt.timedelta(hours=16))
+    l_dfs = q.get_data(l_ts, l_symbols, l_keys)
+    return dict(zip(l_keys, l_dfs))
+
 
 #def plot():
 #    plt.legend([])
@@ -33,7 +43,8 @@ def main():
     ed = dt.datetime(2009, 12, 31)
     s = ["GOOG", "GS", "XLF", "XLK", "$SPX", "XOM", "JNJ", "IBM", "AAPL", "GLD"]
     w = [1.0 / len(s) for i in range(len(s))]
-    return simulate(sd, ed, s, w)
+    l_keys = [da.DataItem.HIGH, da.DataItem.LOW, da.DataItem.CLOSE, da.DataItem.ACTUAL_CLOSE]
+    return get_data(sd, ed, s, l_keys)
 
 
 if __name__ == "__main__":
