@@ -3,9 +3,7 @@ __author__ = 'ChuTan'
 import datetime as dt
 import QSTK.qstkutil.DataAccess as da
 import QSTK.qstkutil.qsdateutil as du
-import QSTK.qstkutil.tsutil as tu
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
 
 
@@ -17,13 +15,14 @@ def calc_vol(df_pret):
     return (((df_pret - (df_pret.sum() / df_count)) ** 2) / df_count) ** 0.5
 
 def simulate(dt_sd, dt_ed, l_sym, l_w):
+    '''Calculate vol, daily return, sharpe ratio, cum ret '''
     vol = 0
     daily_ret = 0
     sharpe = 0
     cum_ret = 0
 
     df_close = get_data(dt_sd, dt_ed, l_sym, [da.DataItem.CLOSE])[da.DataItem.CLOSE]
-    if not(checkNAs(df_close)): return
+    if hasMissingValues(df_close): return
     df_value = sim_value(df_close, l_w)
     df_pvalue = df_value.sum(axis=1)
     df_pret = calc_returns(df_pvalue)
@@ -32,12 +31,14 @@ def simulate(dt_sd, dt_ed, l_sym, l_w):
 
     plot(["PValue"], df_pvalue.index, df_pvalue)
 
-def checkNAs(df_price):
+
+def hasMissingValues(df_price):
     for col in df_price.columns:
         if np.any(df_price[col].isnull()):
             print "Col " + col + " contains NaN"
-            return False
-    return True
+            return True
+    return False
+
 
 def rejectAllNAs(df_price):
     drop = []
